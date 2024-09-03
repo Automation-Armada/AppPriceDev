@@ -7,7 +7,7 @@
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/inicio.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -24,10 +24,16 @@
       },
       "permissions": [
         "CAMERA"
-      ]
+      ],
+      "package": "com.thiago2233.automationapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a88039f7-8a80-469c-86fb-d7212dccd230"
+      }
     }
   }
 }

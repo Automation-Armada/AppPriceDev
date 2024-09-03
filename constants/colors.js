@@ -1,8 +1,6 @@
-// constants/colors.js
 export default {
-    primary: '#3498db',
-    background: '#000000',
-    button: '#000000',
-    text: '#000000',
-  };
-  
+  primary: '#3498db',
+  background: '#ffffff', // Cambiado a blanco si es necesario
+  button: '#000000',
+  text: '#000000',
+};

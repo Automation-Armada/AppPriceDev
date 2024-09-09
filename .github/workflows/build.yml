@@ -19,15 +19,17 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'
+        node-version: '18'
 
-    - name: Install EAS CLI
-      run: npm install -g expo-cli eas-cli
-      
+    - name: Install Expo CLI and EAS CLI
+      run: |
+        npm install -g expo-cli@latest
+        npm install -g eas-cli@latest
+
     - name: Build APK
       run: |
-        eas build --platform android 
+        eas build --platform android --non-interactive --debug
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-    
+  

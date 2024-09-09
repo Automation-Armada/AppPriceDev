@@ -26,7 +26,7 @@ jobs:
 
     - name: Build APK
       run: |
-        eas build --platform android --non-interactive
+        eas build --platform android 
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 

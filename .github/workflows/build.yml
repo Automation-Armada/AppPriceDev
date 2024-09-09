@@ -24,15 +24,11 @@ jobs:
     - name: Install EAS CLI
       run: npm install -g eas-cli
 
-    - name: Log in to EAS
-      run: eas login --token ${{ secrets.EXPO_TOKEN }}
-
     - name: Build APK
-      id: build
       run: |
-        build_url=$(eas build --platform android --non-interactive --json)
-        echo "Build URL: $build_url"
-        echo "BUILD_URL=$build_url" >> $GITHUB_ENV
+        eas build --platform android --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v3

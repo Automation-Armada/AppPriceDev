@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Image, TouchableOpacity, ScrollView, RefreshControl, Modal } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, RefreshControl, Modal, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import colors from '../constants/colors';
@@ -123,7 +123,9 @@ const HomeScreen = ({ navigation }) => {
       </View>
       
       <TouchableOpacity onPress={openCamera} style={styles.buttonContainer}>
-        <Image source={require('../assets/camera_icon.jpg')} style={styles.cameraIcon} />
+        <View style={styles.cameraButton}>
+          <Text style={styles.cameraButtonText}>Abrir Cámara</Text>
+        </View>
       </TouchableOpacity>
 
       {/* Modal del anuncio */}
@@ -146,7 +148,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Modal de confirmación */}
+     {/* Modal de confirmación */}
       <Modal
         visible={modalVisible}
         transparent={true}
@@ -162,10 +164,10 @@ const HomeScreen = ({ navigation }) => {
               <Text>{language === 'es' ? 'No hay imagen para mostrar' : 'No image to show'}</Text>
             )}
             <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity onPress={handleConfirm} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>{language === 'es' ? 'Aceptar' : 'Accept'}</Text>
+              <TouchableOpacity onPress={handleConfirm} style={[styles.modalButton, { backgroundColor: 'green' }]}>
+                <Text style={styles.modalButtonText}>{language === 'es' ? 'Aceptar' : 'View'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleCancel} style={styles.modalButton}>
+              <TouchableOpacity onPress={handleCancel} style={[styles.modalButton, { backgroundColor: 'red' }]}>
                 <Text style={styles.modalButtonText}>{language === 'es' ? 'Cancelar' : 'Cancel'}</Text>
               </TouchableOpacity>
             </View>
@@ -239,7 +241,6 @@ const styles = StyleSheet.create({
   settingsIcon: {
     width: 38,
     left: 100,
-
     height: 23,
   },
   subtitleContainer: {
@@ -269,16 +270,23 @@ const styles = StyleSheet.create({
     top: 500,
     zIndex: 2,
   },
-  cameraIcon: {
-    width: 100,
-    height: 100,
-    resizeMode: 'contain',
+  cameraButton: {
+    backgroundColor: '#007bff', // Azul para el botón
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cameraButtonText: {
+    color: '#fff', // Blanco para el texto
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semi-transparente
   },
   modalContent: {
     backgroundColor: 'white',
@@ -300,7 +308,7 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     padding: 10,
-    backgroundColor: 'transparent', // Hacer el fondo transparente
+    backgroundColor: 'transparent', // Fondo transparente
     borderRadius: 5,
   },
   closeButtonImage: {
@@ -360,7 +368,6 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     width: '100%',
     alignItems: 'center',
-    
   },
   settingsOptionText: {
     color: '#fff',

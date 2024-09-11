@@ -2,19 +2,12 @@
   "build": {
     "production": {
       "android": {
-        "buildType": "app-bundle"
-      },
-      "ios": {
-        "buildType": "release"
+        "buildType": "apk"
       }
     },
     "development": {
       "android": {
-        "buildType": "apk",
-        "debug": true
-      },
-      "ios": {
-        "buildType": "development"
+        "buildType": "apk"
       }
     }
   }

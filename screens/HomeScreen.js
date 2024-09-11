@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, RefreshControl, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, RefreshControl, Modal, Image, Switch } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import colors from '../constants/colors';
 import settingsIcon from '../assets/settings.png';
-import addIcon from '../assets/add.png'; // Imagen para el anuncio
 import closeIcon from '../assets/close.png'; // Imagen para el botón de cerrar
 
 const HomeScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [adModalVisible, setAdModalVisible] = useState(false); // Nuevo estado para el modal del anuncio
   const [settingsModalVisible, setSettingsModalVisible] = useState(false); // Estado para el modal de configuración de idioma
   const [language, setLanguage] = useState('es'); // Estado para el idioma
+  const [darkMode, setDarkMode] = useState(false); // Estado para el modo oscuro
 
   const openCamera = async () => {
     try {
@@ -42,7 +42,7 @@ const HomeScreen = ({ navigation }) => {
       if (result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setImage(imageUri);
-        setAdModalVisible(true); // Muestra el modal del anuncio
+        setModalVisible(true); // Muestra el modal de confirmación de la foto
       } else {
         Alert.alert('Error', 'No se pudo obtener la imagen');
       }
@@ -50,11 +50,6 @@ const HomeScreen = ({ navigation }) => {
       console.error('Error al abrir la cámara:', error);
       Alert.alert('Error', 'Hubo un problema al abrir la cámara');
     }
-  };
-
-  const handleAdClose = () => {
-    setAdModalVisible(false);
-    setModalVisible(true); // Muestra el modal de confirmación de la foto
   };
 
   const handleConfirm = () => {
@@ -89,12 +84,15 @@ const HomeScreen = ({ navigation }) => {
 
   const changeLanguage = (lang) => {
     setLanguage(lang);
-    closeSettingsModal();
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => !prevMode);
   };
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={styles.container(darkMode)}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -102,277 +100,269 @@ const HomeScreen = ({ navigation }) => {
         />
       }
     >
-      <Image source={require('../assets/AutoPrice.png')} style={styles.backgroundImage} />
-      <Image source={require('../assets/fondo.png')} style={styles.overlayImage} />
+      {/* Fondo blanco en lugar de imagen */}
+      <View style={styles.backgroundWhite(darkMode)} />
 
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{language === 'es' ? 'Car Price' : 'Car Price'}</Text>
+        <Text style={styles.title(darkMode)}>{language === 'es' ? 'Car Price' : 'Car Price'}</Text>
         <TouchableOpacity onPress={openSettingsModal} style={styles.settingsButton}>
           <Image source={settingsIcon} style={styles.settingsIcon} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.subtitleContainer}>
-        <Text style={styles.subtitle}>
-          <Text style={styles.subtitleHeader}>{language === 'es' ? 'Cómo Funciona' : 'How It Works'}</Text>{'\n\n'}
-          <Text style={styles.subtitleItem}>1. 📸 {language === 'es' ? 'Toma una Foto del Auto:' : 'Take a Photo of the Car:'}</Text>{'\n'}
-          {language === 'es' ? 'Abre la cámara de tu dispositivo desde la app y captura una imagen del auto que deseas valorar.' : 'Open your device’s camera from the app and capture an image of the car you want to evaluate.'}{'\n\n'}
-          <Text style={styles.subtitleItem}>2. 💵 {language === 'es' ? 'Valoración Instantánea:' : 'Instant Valuation:'}</Text>{'\n'}
-          {language === 'es' ? 'La app analiza la foto y proporciona una estimación inmediata del valor del auto.' : 'The app analyzes the photo and provides an immediate estimate of the car’s value.'}
+      {/* Recuadro de "Cómo Funciona" */}
+      <View style={styles.subtitleContainer(darkMode)}>
+        <Text style={styles.subtitle(darkMode)}>
+          <Text style={styles.subtitleHeader(darkMode)}>{language === 'es' ? 'Cómo Funciona' : 'How It Works'}</Text>{'\n\n'}
+          <Text style={styles.subtitleItem(darkMode)}>1. 📸 {language === 'es' ? 'Toma una Foto del Auto:' : 'Take a Photo of the Car:'}</Text>{'\n'}
+          {language === 'es' ? 'Abre la cámara del teléfono y toma una foto del auto.' : 'Open your phone’s camera and take a photo of the car.'}{'\n\n'}
+          <Text style={styles.subtitleItem(darkMode)}>2. 📝 {language === 'es' ? 'Consulta el Precio:' : 'Check the Price:'}</Text>{'\n'}
+          {language === 'es' ? 'Recibirás una estimación del precio del auto en base a la foto.' : 'You will receive an estimate of the car’s price based on the photo.'}
         </Text>
       </View>
-      
-      <TouchableOpacity onPress={openCamera} style={styles.buttonContainer}>
-        <View style={styles.cameraButton}>
-          <Text style={styles.cameraButtonText}>Abrir Cámara</Text>
-        </View>
-      </TouchableOpacity>
 
-      {/* Modal del anuncio */}
-      <Modal
-        visible={adModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setAdModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.adModalContent}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleAdClose}
-            >
-              <Image source={closeIcon} style={styles.closeButtonImage} />
-            </TouchableOpacity>
-            <Image source={addIcon} style={styles.adImage} />
-          </View>
-        </View>
-      </Modal>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.cameraButton} onPress={openCamera}>
+          <Text style={styles.cameraButtonText}>{language === 'es' ? 'Abrir Camara' : 'Open Camera'}</Text>
+        </TouchableOpacity>
+      </View>
 
-     {/* Modal de confirmación */}
       <Modal
         visible={modalVisible}
-        transparent={true}
-        animationType="fade"
+        transparent
+        animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{language === 'es' ? '¿La foto es correcta?' : 'Is the photo correct?'}</Text>
-            {image ? (
-              <Image source={{ uri: image }} style={styles.modalImage} />
-            ) : (
-              <Text>{language === 'es' ? 'No hay imagen para mostrar' : 'No image to show'}</Text>
-            )}
+        <View style={styles.modalContainer(darkMode)}>
+          <View style={styles.modalContent(darkMode)}>
+            <Text style={styles.modalTitle(darkMode)}>{language === 'es' ? 'Confirmar Fotografía' : 'Confirm Photo'}</Text>
+            {image && <Image source={{ uri: image }} style={styles.modalImage} />}
             <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity onPress={handleConfirm} style={[styles.modalButton, { backgroundColor: 'green' }]}>
-                <Text style={styles.modalButtonText}>{language === 'es' ? 'Aceptar' : 'View'}</Text>
+              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleConfirm}>
+                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Confirmar' : 'Confirm'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleCancel} style={[styles.modalButton, { backgroundColor: 'red' }]}>
-                <Text style={styles.modalButtonText}>{language === 'es' ? 'Cancelar' : 'Cancel'}</Text>
+              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleRetake}>
+                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Rehacer' : 'Retake'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleCancel}>
+                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Cancelar' : 'Cancel'}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Modal de configuración de idioma */}
       <Modal
         visible={settingsModalVisible}
-        transparent={true}
-        animationType="fade"
+        transparent
+        animationType="slide"
         onRequestClose={closeSettingsModal}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.settingsModalContent}>
-            <Text style={styles.settingsTitle}>{language === 'es' ? 'Selecciona Idioma' : 'Select Language'}</Text>
-            <TouchableOpacity onPress={() => changeLanguage('es')} style={styles.settingsOption}>
-              <Text style={styles.settingsOptionText}>{language === 'es' ? 'Español' : 'Spanish'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => changeLanguage('en')} style={styles.settingsOption}>
-              <Text style={styles.settingsOptionText}>{language === 'es' ? 'Inglés' : 'English'}</Text>
-            </TouchableOpacity>
+        <View style={styles.settingsModalContent(darkMode)}>
+          <TouchableOpacity style={styles.closeSettingsButton} onPress={closeSettingsModal}>
+            <Text style={styles.closeSettingsButtonText}>X</Text>
+          </TouchableOpacity>
+          <Text style={styles.settingsTitle(darkMode)}>{language === 'es' ? 'Configuración' : 'Settings'}</Text>
+          <Text style={styles.settingsOptionText(darkMode)}>{language === 'es' ? 'Seleccionar Idioma' : 'Select Language'}</Text>
+          <TouchableOpacity style={styles.settingsOption} onPress={() => changeLanguage('es')}>
+            <Text style={styles.settingsOptionText(darkMode)}>{language === 'es' ? 'Español' : 'Spanish'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.settingsOption} onPress={() => changeLanguage('en')}>
+            <Text style={styles.settingsOptionText(darkMode)}>{language === 'es' ? 'Inglés' : 'English'}</Text>
+          </TouchableOpacity>
+          <View style={styles.switchContainer}>
+            <Text style={styles.settingsOptionText(darkMode)}>{language === 'es' ? 'Modo Oscuro' : 'Dark Mode'}</Text>
+            <Switch value={darkMode} onValueChange={toggleDarkMode} />
           </View>
         </View>
       </Modal>
+
+      {/* Área de fondo "Add Space" */}
+      <View style={styles.addSpaceContainer(darkMode)}>
+        <Text style={styles.addSpaceText(darkMode)}>{language === 'es' ? 'Espacio para Anuncios' : 'Ad Space'}</Text>
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  container: (darkMode) => ({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-  },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    resizeMode: 'cover',
-    width: '100%',
-    height: '100%',
-    zIndex: 0,
-  },
-  overlayImage: {
-    resizeMode: 'contain',
-    width: '70%',
-    height: '50%',
-    position: 'absolute',
-    top: '-2%',
-    left: '15%',
-    zIndex: 1,
-  },
+    backgroundColor: darkMode ? '#121212' : '#fff',
+  }),
+  backgroundWhite: (darkMode) => ({
+    width: wp('100%'),
+    height: hp('100%'),
+    backgroundColor: darkMode ? '#121212' : '#fff',
+  }),
   titleContainer: {
     position: 'absolute',
-    top: 20,
+    top: hp('5%'),
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    left: '35%',
+    left: wp('35%'),
     zIndex: 2,
   },
-  title: {
-    fontSize: 24,
+  title: (darkMode) => ({
+    fontSize: wp('6%'),
     fontWeight: 'bold',
-    color: colors.text,
-  },
+    color: darkMode ? '#fff' : colors.text,
+  }),
   settingsButton: {
-    marginLeft: 10,
+    marginLeft: wp('20%'),
   },
   settingsIcon: {
-    width: 38,
-    left: 100,
-    height: 23,
+    width: wp('10%'),
+    height: hp('5%'),
   },
-  subtitleContainer: {
+  subtitleContainer: (darkMode) => ({
     position: 'absolute',
-    top: 250,
+    top: hp('20%'), // Ajusta esta propiedad para mover el recuadro más al centro
     alignSelf: 'center',
-    marginHorizontal: 20,
-    zIndex: 2,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text,
-    textAlign: 'center',
-    fontFamily: 'System',
-  },
-  subtitleHeader: {
-    fontSize: 18,
+    padding: wp('4%'),
+    width: wp('80%'), // Ajusta el ancho del contenedor
+    backgroundColor: darkMode ? 'rgba(33, 33, 33, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: darkMode ? '#424242' : colors.border,
+    zIndex: 1,
+    alignItems: 'center', // Alinea el texto al centro del contenedor
+  }),
+  subtitle: (darkMode) => ({
+    fontSize: wp('4%'),
+    color: darkMode ? '#fff' : colors.text,
+    textAlign: 'center', // Centra el texto dentro del contenedor
+    lineHeight: hp('3%'), // Ajusta el espaciado entre líneas
+  }),
+  subtitleHeader: (darkMode) => ({
     fontWeight: 'bold',
-    color: colors.text,
-  },
-  subtitleItem: {
+    color: darkMode ? '#fff' : colors.text,
+    fontSize: wp('4.5%'), // Tamaño del texto para el encabezado
+  }),
+  subtitleItem: (darkMode) => ({
     fontWeight: 'bold',
-    marginVertical: 5,
-  },
+    color: darkMode ? '#fff' : colors.text,
+    fontSize: wp('4%'), // Tamaño del texto para los elementos
+  }),
   buttonContainer: {
     position: 'absolute',
-    top: 500,
-    zIndex: 2,
+    bottom: hp('30%'), // Ajusta esta propiedad para mover el botón más arriba si es necesario
+    alignSelf: 'center',
   },
   cameraButton: {
-    backgroundColor: '#007bff', // Azul para el botón
-    padding: 15,
+    backgroundColor: '#3D619B', // Color del botón
+    paddingVertical: hp('2%'),
+    paddingHorizontal: wp('8%'),
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    elevation: 5, // Elevation para Android
+    shadowColor: '#000', // Color de la sombra
+    shadowOffset: { width: 0, height: 4 }, // Desplazamiento de la sombra
+    shadowOpacity: 0.3, // Opacidad de la sombra
+    shadowRadius: 6, // Radio de la sombra
   },
   cameraButtonText: {
-    color: '#fff', // Blanco para el texto
-    fontSize: 16,
+    color: '#fff',
+    fontSize: wp('5%'),
     fontWeight: 'bold',
   },
-  modalContainer: {
+  modalContainer: (darkMode) => ({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semi-transparente
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
+    backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+  }),
+  modalContent: (darkMode) => ({
+    backgroundColor: darkMode ? '#333' : '#fff',
     borderRadius: 10,
+    padding: wp('5%'),
+    width: wp('80%'),
     alignItems: 'center',
-    width: '80%',
-  },
-  adModalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '80%',
-    position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    padding: 10,
-    backgroundColor: 'transparent', // Fondo transparente
-    borderRadius: 5,
-  },
-  closeButtonImage: {
-    width: 20,
-    height: 20,
-  },
-  adImage: {
-    width: '100%',
-    height: 300,
-    resizeMode: 'contain',
-  },
-  modalTitle: {
-    fontSize: 18,
+  }),
+  modalTitle: (darkMode) => ({
+    fontSize: wp('5%'),
     fontWeight: 'bold',
-    marginBottom: 10,
-  },
+    marginBottom: hp('2%'),
+    color: darkMode ? '#fff' : '#000',
+  }),
   modalImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 20,
-    resizeMode: 'cover',
+    width: wp('70%'),
+    height: hp('30%'),
+    marginBottom: hp('2%'),
   },
   modalButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     width: '100%',
   },
-  modalButton: {
-    backgroundColor: colors.button,
-    padding: 10,
+  modalButton: (darkMode) => ({
+    backgroundColor: colors.primary,
+    paddingVertical: hp('1.5%'),
+    paddingHorizontal: wp('5%'),
     borderRadius: 5,
-    flex: 1,
-    marginHorizontal: 5,
-    alignItems: 'center',
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  settingsModalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '80%',
-  },
-  settingsTitle: {
-    fontSize: 18,
+    margin: wp('1%'),
+  }),
+  modalButtonText: (darkMode) => ({
+    color: darkMode ? '#333' : '#fff',
+    fontSize: wp('4%'),
     fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  settingsOption: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: colors.button,
-    marginVertical: 5,
-    width: '100%',
+  }),
+  settingsModalContent: (darkMode) => ({
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  settingsOptionText: {
+    backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+  }),
+  settingsTitle: (darkMode) => ({
+    fontSize: wp('6%'),
+    fontWeight: 'bold',
     color: '#fff',
-    fontSize: 16,
+    marginBottom: hp('2%'),
+  }),
+  settingsOption: {
+    backgroundColor: colors.primary,
+    paddingVertical: hp('2%'),
+    paddingHorizontal: wp('6%'),
+    borderRadius: 5,
+    margin: hp('1%'),
   },
+  settingsOptionText: (darkMode) => ({
+    color: '#fff',
+    fontSize: wp('4.5%'),
+    fontWeight: 'bold',
+  }),
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: hp('2%'),
+  },
+  closeSettingsButton: {
+    position: 'absolute',
+    top: hp('2%'),
+    right: wp('2%'),
+    backgroundColor: 'transparent',
+  },
+  closeSettingsButtonText: {
+    fontSize: wp('6%'),
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  addSpaceContainer: (darkMode) => ({
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: darkMode ? '#424242' : '#f0f0f0',
+    paddingVertical: hp('2%'),
+    alignItems: 'center',
+    justifyContent: 'center',
+  }),
+  addSpaceText: (darkMode) => ({
+    color: darkMode ? '#fff' : '#000',
+    fontSize: wp('4.5%'),
+    fontWeight: 'bold',
+  }),
 });
 
 export default HomeScreen;

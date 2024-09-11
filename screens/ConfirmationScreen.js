@@ -1,51 +1,35 @@
 import React from 'react';
-import { View, Image, StyleSheet, Dimensions, TouchableOpacity, Text, Linking } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../constants/colors';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useDimensions, widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import backIcon from '../assets/back.png';
 
 const ConfirmationScreen = () => {
-  const { width, height } = Dimensions.get('window');
-  const navigation = useNavigation();
   const route = useRoute();
+  const navigation = useNavigation();
+  const { imageUri } = route.params || {};
 
-  // Obtener la URI de la imagen desde los parámetros de la ruta
-  const imageUri = route.params?.imageUri;
-
-  const handleConsult = () => {
-    // Enlace a Google
-    Linking.openURL('https://www.google.com');
+  const goBack = () => {
+    navigation.goBack();
   };
 
   return (
-    <View style={styles.container}>
-      <Image 
-        source={require('../assets/resultado.png')} 
-        style={[styles.backgroundImage, { width, height }]} 
-        resizeMode="stretch" 
-      />
-      
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Image 
-          source={require('../assets/back.png')} 
-          style={styles.backButtonImage} 
-        />
+    <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={goBack}>
+        <Image source={backIcon} style={styles.backButtonImage} />
       </TouchableOpacity>
 
-      {/* Mostrar la imagen si está disponible */}
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.modalImage} />
+      <Text style={styles.header}>Confirmar Fotografía</Text>
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={styles.image} />
+      ) : (
+        <Text>No hay imagen para mostrar</Text>
       )}
 
-      <TouchableOpacity 
-        style={styles.consultButton}
-        onPress={handleConsult}
-      >
+      <TouchableOpacity style={styles.consultButton} onPress={() => { /* Lógica para consultar */ }}>
         <Text style={styles.consultButtonText}>Consultar</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -54,42 +38,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   backgroundImage: {
     position: 'absolute',
     top: 0,
     left: 0,
+    width: wp('100%'),
+    height: hp('100%'),
   },
   backButton: {
     position: 'absolute',
-    top: 30,
-    left: 20,
+    top: hp('3%'),
+    left: wp('5%'),
     zIndex: 1,
   },
   backButtonImage: {
-    width: 40,
-    height: 40,
+    width: wp('10%'),
+    height: hp('5%'),
+  },
+  header: {
+    fontSize: wp('6%'),
+    fontWeight: 'bold',
+    marginBottom: hp('2%'),
+  },
+  image: {
+    width: wp('80%'),
+    height: hp('50%'),
+    borderRadius: 10,
+    resizeMode: 'cover',
+    marginBottom: hp('2%'),
   },
   consultButton: {
-    position: 'absolute',
-    bottom: 120,
-    backgroundColor: 'green', // Color verde
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    backgroundColor: 'green',
+    paddingVertical: hp('2.5%'),
+    paddingHorizontal: wp('6%'),
     borderRadius: 10,
-    left: 20,
   },
   consultButtonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: wp('5%'),
     fontWeight: 'bold',
-  },
-  modalImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    resizeMode: 'cover',
-    marginBottom: 70,
   },
 });
 

@@ -52,15 +52,15 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleConfirm = () => {
+  const handleContinue = () => {
     setModalVisible(false);
-    navigation.navigate('Confirmation', { imageUri: image }); // Pasar la URI de la imagen
+    navigation.navigate('Confirmation', { 
+      imageUri: image,
+      backgroundColor: darkMode ? '#121212' : '#fff',
+      language: language 
+    }); // Pasar color de fondo e idioma
   };
-
-  const handleCancel = () => {
-    setModalVisible(false);
-    // Opcional: Puedes añadir lógica para cancelar la acción aquí
-  };
+  
 
   const handleRetake = () => {
     setModalVisible(false);
@@ -138,14 +138,11 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.modalTitle(darkMode)}>{language === 'es' ? 'Confirmar Fotografía' : 'Confirm Photo'}</Text>
             {image && <Image source={{ uri: image }} style={styles.modalImage} />}
             <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleConfirm}>
-                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Confirmar' : 'Confirm'}</Text>
+              <TouchableOpacity style={[styles.modalButton(darkMode), styles.retakeButton]} onPress={handleRetake}>
+                <Text style={styles.modalButtonText}>{language === 'es' ? 'Tomar Otra' : 'Retake'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleRetake}>
-                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Rehacer' : 'Retake'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton(darkMode)} onPress={handleCancel}>
-                <Text style={styles.modalButtonText(darkMode)}>{language === 'es' ? 'Cancelar' : 'Cancel'}</Text>
+              <TouchableOpacity style={[styles.modalButton(darkMode), styles.continueButton]} onPress={handleContinue}>
+                <Text style={styles.modalButtonText}>{language === 'es' ? 'Continuar' : 'Continue'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -298,17 +295,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   modalButton: (darkMode) => ({
-    backgroundColor: colors.primary,
     paddingVertical: hp('1.5%'),
     paddingHorizontal: wp('5%'),
     borderRadius: 5,
     margin: wp('1%'),
   }),
-  modalButtonText: (darkMode) => ({
-    color: darkMode ? '#333' : '#fff',
+  retakeButton: {
+    backgroundColor: '#70706C', // Color para "Tomar Otra"
+  },
+  continueButton: {
+    backgroundColor: '#2B9107', // Color para "Continuar"
+  },
+  modalButtonText: {
+    color: '#fff', // Texto en blanco
     fontSize: wp('4%'),
     fontWeight: 'bold',
-  }),
+  },
   settingsModalContent: (darkMode) => ({
     flex: 1,
     justifyContent: 'center',

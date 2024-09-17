@@ -23,32 +23,16 @@ jobs:
 
     - name: Install Expo CLI and EAS CLI
       run: |
-        npm install
+        echo "instalando dependencies"
+        npm i
+        echo "instalando dependencies2"
         npm install -g expo-cli@latest
         npm install -g eas-cli@latest
 
     - name: Build APK
-      id: build
+      run: |
+        eas build --platform android --non-interactive
       env:
         EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      run: |
-        echo "Starting the build process"
-        # Run the build command and capture its output
-        OUTPUT=$(eas build --platform android --non-interactive)
-        echo "$OUTPUT"
-        # Extract the build URL from the build output
-        BUILD_URL=$(echo "$OUTPUT" | grep -oP '(?<=🤖 Android app:\n).+')
-        echo "BUILD_URL=$BUILD_URL" >> $GITHUB_ENV
 
-    - name: Download APK
-      if: env.BUILD_URL
-      run: |
-        echo "Downloading APK from $BUILD_URL"
-        curl -L -o app-release.apk ${{ env.BUILD_URL }}
-
-    - name: Upload APK as artifact
-      if: env.BUILD_URL
-      uses: actions/upload-artifact@v3
-      with:
-        name: app-release
-        path: app-release.apk
+  

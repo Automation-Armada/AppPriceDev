@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Modal, Image, Switch } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 
 const App = () => {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState(null);
+  const [imageUri, setImageUri] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [language, setLanguage] = useState('es'); // Default language is Spanish
 
-  // Solicitar permiso para usar la cámara
-  const requestCameraPermission = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    setHasCameraPermission(status === 'granted');
+  // Solicitar permisos para la cámara y la galería
+  const requestPermissions = async () => {
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: mediaLibraryStatus } = await MediaLibrary.requestPermissionsAsync();
+    setHasCameraPermission(cameraStatus === 'granted');
+    setHasMediaLibraryPermission(mediaLibraryStatus === 'granted');
   };
 
   // Función para abrir la cámara
@@ -22,8 +29,21 @@ const App = () => {
       });
 
       if (!result.canceled) {
-        // Aquí puedes hacer algo con la imagen, como mostrarla en la pantalla
-        Alert.alert('Imagen tomada', '¡Se ha tomado una imagen con éxito!');
+        const { uri } = result.assets[0];
+        setImageUri(uri);
+        if (hasMediaLibraryPermission) {
+          try {
+            // Guardar la imagen en la galería
+            await MediaLibrary.createAssetAsync(uri);
+            Alert.alert('Imagen guardada', 'La imagen se ha guardado en la galería con éxito.');
+            setPhotoModalVisible(true); // Mostrar el modal con la foto
+          } catch (error) {
+            console.error('Error al guardar la imagen:', error);
+            Alert.alert('Error', 'Hubo un problema al guardar la imagen en la galería.');
+          }
+        } else {
+          Alert.alert('Permiso denegado', 'No tienes permiso para acceder a la galería.');
+        }
       } else {
         Alert.alert('Error', 'No se tomó ninguna imagen.');
       }
@@ -32,9 +52,21 @@ const App = () => {
     }
   };
 
+  // Función para tomar otra foto
+  const handleTakeAnother = () => {
+    setPhotoModalVisible(false);
+    openCamera();
+  };
+
+  // Función para continuar
+  const handleContinue = () => {
+    setPhotoModalVisible(false);
+    // Aquí puedes agregar la lógica para continuar con la aplicación
+  };
+
   // Solicitar permisos cuando se monta el componente
   useEffect(() => {
-    requestCameraPermission();
+    requestPermissions();
   }, []);
 
   // Función para cambiar el modo oscuro
@@ -42,15 +74,44 @@ const App = () => {
     setDarkMode(!darkMode);
   };
 
+  // Función para cambiar el idioma
+  const changeLanguage = (lang) => {
+    setLanguage(lang);
+    setModalVisible(false);
+  };
+
   return (
     <View style={[styles.container, darkMode && styles.darkContainer]}>
-      <Text style={[styles.title, darkMode && styles.darkTitle]}>Car Price</Text>
+      <View style={styles.titleContainer}>
+        <Text style={[styles.title, darkMode && styles.darkTitle]}>Car Price</Text>
+      </View>
+
+      {/* Recuadro con instrucciones */}
+      <View style={[styles.instructionBox, darkMode && styles.darkInstructionBox]}>
+        <Text style={[styles.subtitle, darkMode && styles.darkSubtitle]}>
+          <Text style={[styles.subtitleHeader, darkMode && styles.darkSubtitleHeader]}>
+            {language === 'es' ? 'Cómo Funciona' : 'How It Works'}
+          </Text>{'\n\n'}
+          <Text style={[styles.subtitleItem, darkMode && styles.darkSubtitleItem]}>
+            1. 📸 {language === 'es' ? 'Toma una Foto del Auto:' : 'Take a Photo of the Car:'}
+          </Text>{'\n'}
+          {language === 'es' ? 'Abre la cámara del teléfono y toma una foto del auto.' : 'Open your phone’s camera and take a photo of the car.'}{'\n\n'}
+          <Text style={[styles.subtitleItem, darkMode && styles.darkSubtitleItem]}>
+            2. 📝 {language === 'es' ? 'Consulta el Precio:' : 'Check the Price:'}
+          </Text>{'\n'}
+          {language === 'es' ? 'Recibirás una estimación del precio del auto en base a la foto.' : 'You will receive an estimate of the car’s price based on the photo.'}
+        </Text>
+      </View>
+
+      {/* Botón de abrir cámara */}
       <TouchableOpacity style={[styles.button, darkMode && styles.darkButton]} onPress={openCamera}>
-        <Text style={[styles.buttonText, darkMode && styles.darkButtonText]}>Abrir Cámara</Text>
+        <Text style={[styles.buttonText, darkMode && styles.darkButtonText]}>
+          {language === 'es' ? 'Abrir Cámara' : 'Open Camera'}
+        </Text>
       </TouchableOpacity>
 
       {/* Botón de configuración */}
-      <TouchableOpacity style={styles.settingsButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={[styles.settingsButton, darkMode && styles.darkSettingsButton]} onPress={() => setModalVisible(true)}>
         <Image source={require('./assets/settings.png')} style={styles.settingsIcon} />
       </TouchableOpacity>
 
@@ -64,8 +125,16 @@ const App = () => {
         <View style={[styles.modalContainer, darkMode && styles.darkModalContainer]}>
           <View style={[styles.modalContent, darkMode && styles.darkModalContent]}>
             <Text style={[styles.modalTitle, darkMode && styles.darkModalTitle]}>Configuración</Text>
-            <Text style={[styles.modalOption, darkMode && styles.darkModalOption]}>Español</Text>
-            <Text style={[styles.modalOption, darkMode && styles.darkModalOption]}>Inglés</Text>
+            <TouchableOpacity onPress={() => changeLanguage('es')} style={styles.languageButton}>
+              <Text style={[styles.languageButtonText, language === 'es' && styles.selectedLanguage]}>
+                Español
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => changeLanguage('en')} style={styles.languageButton}>
+              <Text style={[styles.languageButtonText, language === 'en' && styles.selectedLanguage]}>
+                Inglés
+              </Text>
+            </TouchableOpacity>
             <View style={styles.switchContainer}>
               <Text style={[styles.switchLabel, darkMode && styles.darkSwitchLabel]}>Modo Oscuro</Text>
               <Switch
@@ -76,6 +145,28 @@ const App = () => {
             <TouchableOpacity style={[styles.closeButton, darkMode && styles.darkCloseButton]} onPress={() => setModalVisible(false)}>
               <Text style={[styles.closeButtonText, darkMode && styles.darkCloseButtonText]}>Cerrar</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal con la foto tomada */}
+      <Modal
+        visible={photoModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPhotoModalVisible(false)}
+      >
+        <View style={styles.photoModalContainer}>
+          <View style={styles.photoModalContent}>
+            <Image source={{ uri: imageUri }} style={styles.image} />
+            <View style={styles.photoModalButtonsContainer}>
+              <TouchableOpacity style={styles.takeAnotherButton} onPress={handleTakeAnother}>
+                <Text style={styles.takeAnotherButtonText}>Tomar Otra</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                <Text style={styles.continueButtonText}>Continuar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -93,6 +184,12 @@ const styles = StyleSheet.create({
   darkContainer: {
     backgroundColor: '#333',
   },
+  titleContainer: {
+    position: 'absolute',
+    top: 40, // Ajusta esta propiedad para mover el título más arriba o abajo
+    width: '100%',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -101,26 +198,57 @@ const styles = StyleSheet.create({
   darkTitle: {
     color: '#fff',
   },
+  instructionBox: {
+    width: '90%',
+    padding: 20,
+    marginBottom: 40, // Ajusta este margen para separar el recuadro del botón
+    borderRadius: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  darkInstructionBox: {
+    borderColor: '#555',
+  },
+  subtitle: {
+    fontSize: 16,
+  },
+  darkSubtitle: {
+    color: '#ddd',
+  },
+  subtitleHeader: {
+    fontWeight: 'bold',
+  },
+  darkSubtitleHeader: {
+    color: '#eee',
+  },
+  subtitleItem: {
+    fontWeight: 'normal',
+  },
+  darkSubtitleItem: {
+    color: '#bbb',
+  },
   button: {
-    backgroundColor: '#3D619B',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#007BFF',
+    padding: 15,
     borderRadius: 5,
+    alignItems: 'center',
+    width: '80%',
+    marginBottom: 20,
   },
   darkButton: {
-    backgroundColor: '#555',
+    backgroundColor: '#0056b3',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   darkButtonText: {
     color: '#ddd',
   },
   settingsButton: {
     position: 'absolute',
-    top: 40,
+    top: 30,
     right: 20,
   },
   settingsIcon: {
@@ -134,12 +262,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   darkModalContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   modalContent: {
     width: '80%',
-    backgroundColor: '#fff',
     padding: 20,
+    backgroundColor: '#fff',
     borderRadius: 10,
     alignItems: 'center',
   },
@@ -147,50 +275,92 @@ const styles = StyleSheet.create({
     backgroundColor: '#444',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 20,
   },
   darkModalTitle: {
-    color: '#fff',
-  },
-  modalOption: {
-    fontSize: 18,
-    marginVertical: 10,
-    color: '#000',
-  },
-  darkModalOption: {
     color: '#ddd',
+  },
+  languageButton: {
+    marginVertical: 5,
+  },
+  languageButtonText: {
+    fontSize: 16,
+  },
+  selectedLanguage: {
+    fontWeight: 'bold',
+    color: '#007BFF',
   },
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
   },
   switchLabel: {
-    fontSize: 18,
+    fontSize: 16,
     marginRight: 10,
   },
   darkSwitchLabel: {
-    color: '#fff',
+    color: '#ddd',
   },
   closeButton: {
     marginTop: 20,
-    backgroundColor: '#3D619B',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
     borderRadius: 5,
+    alignItems: 'center',
   },
   darkCloseButton: {
-    backgroundColor: '#555',
+    backgroundColor: '#0056b3',
   },
   closeButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   darkCloseButtonText: {
     color: '#ddd',
+  },
+  photoModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  photoModalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  image: {
+    width: '100%',
+    height: 300,
+    resizeMode: 'cover',
+  },
+  photoModalButtonsContainer: {
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  takeAnotherButton: {
+    backgroundColor: '#ff0000',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  continueButton: {
+    backgroundColor: '#00ff00',
+    padding: 10,
+    borderRadius: 5,
+  },
+  takeAnotherButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 

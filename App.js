@@ -76,7 +76,33 @@ const App = () => {
   // Función para cambiar el idioma
   const changeLanguage = (lang) => {
     setLanguage(lang);
-    setModalVisible(false);
+    // No cerramos el modal cuando se cambia el idioma
+  };
+
+  // Traducciones
+  const translations = {
+    es: {
+      settings: 'Configuración',
+      language: 'Idioma',
+      darkMode: 'Modo Oscuro',
+      close: 'Cerrar',
+      openCamera: 'Abrir Cámara',
+      howItWorks: 'Cómo Funciona',
+      takePhoto: 'Toma una Foto del Auto:',
+      checkPrice: 'Consulta el Precio:',
+      adSpace: 'Espacio para anuncios',
+    },
+    en: {
+      settings: 'Settings',
+      language: 'Language',
+      darkMode: 'Dark Mode',
+      close: 'Close',
+      openCamera: 'Open Camera',
+      howItWorks: 'How It Works',
+      takePhoto: 'Take a Photo of the Car:',
+      checkPrice: 'Check the Price:',
+      adSpace: 'Add Space',
+    },
   };
 
   return (
@@ -91,14 +117,14 @@ const App = () => {
         <View style={[styles.instructionBox, darkMode && styles.darkInstructionBox]}>
           <Text style={[styles.subtitle, darkMode && styles.darkSubtitle]}>
             <Text style={[styles.subtitleHeader, darkMode && styles.darkSubtitleHeader]}>
-              {language === 'es' ? 'Cómo Funciona' : 'How It Works'}
+              {translations[language].howItWorks}
             </Text>{'\n\n'}
             <Text style={[styles.subtitleItem, darkMode && styles.darkSubtitleItem]}>
-              1. 📸 {language === 'es' ? 'Toma una Foto del Auto:' : 'Take a Photo of the Car:'}
+              1. 📸 {translations[language].takePhoto}
             </Text>{'\n'}
             {language === 'es' ? 'Abre la cámara del teléfono y toma una foto del auto.' : 'Open your phone’s camera and take a photo of the car.'}{'\n\n'}
             <Text style={[styles.subtitleItem, darkMode && styles.darkSubtitleItem]}>
-              2. 📝 {language === 'es' ? 'Consulta el Precio:' : 'Check the Price:'}
+              2. 📝 {translations[language].checkPrice}
             </Text>{'\n'}
             {language === 'es' ? 'Recibirás una estimación del precio del auto en base a la foto.' : 'You will receive an estimate of the car’s price based on the photo.'}
           </Text>
@@ -107,7 +133,7 @@ const App = () => {
         {/* Botón de abrir cámara */}
         <TouchableOpacity style={[styles.button, darkMode && styles.darkButton]} onPress={openCamera}>
           <Text style={[styles.buttonText, darkMode && styles.darkButtonText]}>
-            {language === 'es' ? 'Abrir Cámara' : 'Open Camera'}
+            {translations[language].openCamera}
           </Text>
         </TouchableOpacity>
       </View>
@@ -126,27 +152,29 @@ const App = () => {
       >
         <View style={[styles.modalContainer, darkMode && styles.darkModalContainer]}>
           <View style={[styles.modalContent, darkMode && styles.darkModalContent]}>
-            <Text style={[styles.modalTitle, darkMode && styles.darkModalTitle]}>Configuración</Text>
-            <TouchableOpacity onPress={() => changeLanguage('es')} style={styles.languageButton}>
-              <Text style={[styles.languageButtonText, language === 'es' && styles.selectedLanguage]}>
-                Español
-              </Text>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeButtonText}>✖</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => changeLanguage('en')} style={styles.languageButton}>
-              <Text style={[styles.languageButtonText, language === 'en' && styles.selectedLanguage]}>
-                Inglés
-              </Text>
+            <Text style={[styles.modalTitle, darkMode && styles.darkModalTitle]}>{translations[language].settings}</Text>
+            <TouchableOpacity
+              onPress={() => changeLanguage('es')}
+              style={[styles.languageButton, language === 'es' && styles.selectedLanguageButton]}
+            >
+              <Text style={styles.languageButtonText}>Español</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => changeLanguage('en')}
+              style={[styles.languageButton, language === 'en' && styles.selectedLanguageButton]}
+            >
+              <Text style={styles.languageButtonText}>English</Text>
             </TouchableOpacity>
             <View style={styles.switchContainer}>
-              <Text style={[styles.switchLabel, darkMode && styles.darkSwitchLabel]}>Modo Oscuro</Text>
+              <Text style={[styles.switchLabel, darkMode && styles.darkSwitchLabel]}>{translations[language].darkMode}</Text>
               <Switch
                 value={darkMode}
                 onValueChange={toggleDarkMode}
               />
             </View>
-            <TouchableOpacity style={[styles.closeButton, darkMode && styles.darkCloseButton]} onPress={() => setModalVisible(false)}>
-              <Text style={[styles.closeButtonText, darkMode && styles.darkCloseButtonText]}>Cerrar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -163,10 +191,10 @@ const App = () => {
             <Image source={{ uri: imageUri }} style={styles.image} />
             <View style={styles.photoModalButtonsContainer}>
               <TouchableOpacity style={styles.takeAnotherButton} onPress={handleTakeAnother}>
-                <Text style={styles.takeAnotherButtonText}>Tomar Otra</Text>
+                <Text style={styles.takeAnotherButtonText}>{language === 'es' ? 'Tomar Otra' : 'Take Another'}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                <Text style={styles.continueButtonText}>Continuar</Text>
+                <Text style={styles.continueButtonText}>{language === 'es' ? 'Continuar' : 'Continue'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -176,7 +204,7 @@ const App = () => {
       {/* Espacio para anuncios */}
       <View style={styles.adContainer}>
         <Text style={styles.adText}>
-          {language === 'es' ? 'Espacio para anuncios' : 'Add Space'}
+          {translations[language].adSpace}
         </Text>
       </View>
     </View>
@@ -201,30 +229,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   darkTitle: {
     color: '#fff',
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center', // Centra el contenido verticalmente
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    padding: 20,
   },
   instructionBox: {
-    width: '100%',
-    maxWidth: 600, // Puedes ajustar el tamaño máximo del recuadro
     padding: 20,
-    borderRadius: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
     backgroundColor: '#f9f9f9',
-    marginBottom: 20, // Añadido para separar del botón
+    borderRadius: 10,
+    marginBottom: 20,
+    width: '100%',
   },
   darkInstructionBox: {
     backgroundColor: '#444',
-    borderColor: '#666',
   },
   subtitle: {
     fontSize: 16,
@@ -282,6 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     alignItems: 'center',
+    position: 'relative', // Necesario para posicionar la X
   },
   darkModalContainer: {
     backgroundColor: 'rgba(0,0,0,0.8)',
@@ -299,12 +324,15 @@ const styles = StyleSheet.create({
   languageButton: {
     padding: 10,
     borderRadius: 5,
+    backgroundColor: '#007BFF', // Color azul para los botones
+    marginBottom: 10,
+  },
+  selectedLanguageButton: {
+    backgroundColor: '#0056b3', // Color más oscuro para el botón seleccionado
   },
   languageButtonText: {
     fontSize: 18,
-  },
-  selectedLanguage: {
-    fontWeight: 'bold',
+    color: '#fff',
   },
   switchContainer: {
     flexDirection: 'row',
@@ -319,19 +347,25 @@ const styles = StyleSheet.create({
     color: '#ccc',
   },
   closeButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-  },
-  darkCloseButton: {
-    backgroundColor: '#0056b3',
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 15,
+    backgroundColor: '#fff', // Color de fondo del círculo
   },
   closeButtonText: {
-    color: '#fff',
+    fontSize: 20,
+    color: '#007BFF', // Color de la X
+  },
+  darkCloseButton: {
+    backgroundColor: '#444',
   },
   darkCloseButtonText: {
-    color: '#ccc',
+    color: '#fff',
   },
   photoModalContainer: {
     flex: 1,
